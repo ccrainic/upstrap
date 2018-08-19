@@ -1,9 +1,9 @@
 ---
 title: "The upstrap paper vignette"
-author: "Ciprian M. Crainiceanu"
+author: "Ciprian M. Crainiceanu and Adina Crainiceanu"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -21,10 +21,10 @@ To do this, we will use a subset of the Sleep Heart Health Study (SHHS), a multi
 
 For ilustration purposes we analyze a subset of the SHHS visit $1$ data, which contain $5804$ participants and $29$ variables plus the patient id column. This subset was created for the book [Methods in Biostatistics with R](https://leanpub.com/biostatmethods) (Crainiceanu, Caffo, Muschelli, 2018). Data are provided with this vignette, making the document and the associated paper reproducible.  We start by setting the path for where the data are stored on the computer. 
 
-```{r}
+```{r,eval=FALSE}
 # set the working directory
 # this will need to be changed on a different computer
-f.path<-"D://research//leading_author//Upstrap//code"
+f.path<-"path_to_upstrap_code_folder"
 setwd(f.path)
 ```
 
@@ -201,14 +201,13 @@ There are very few methods to estimate the sample size in such examples and we c
 
 1. Crainiceanu CM, Caffo B, Muschelli J. Methods in Biostatistics with R. Leanpub 2018, [Leanpub link](https://leanpub.com/biostatmethods)
 
-1. Dean DA, Goldberger AL, Mueller R, et al. Scaling Up Scientific Discovery in Sleep Medicine: The National Sleep Research Resource. Sleep. 2016;39(5):1151-1164.
+2. Dean DA, Goldberger AL, Mueller R, et al. Scaling Up Scientific Discovery in Sleep Medicine: The National Sleep Research Resource. Sleep. 2016;39(5):1151-1164.
 
-2. Quan SF, Howard BV, Iber C, et al. The Sleep Heart Health Study: design, rationale, and methods. Sleep. 1997;20(12):1077-1085.
+3. Quan SF, Howard BV, Iber C, et al. The Sleep Heart Health Study: design, rationale, and methods. Sleep. 1997;20(12):1077-1085.
 
-3. R Development Core Team (2008). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+4. R Development Core Team (2008). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
   Vienna, Austria.
   
-4.Punjabi NM. The Epidemiology of Adult Obstructive Sleep Apnea. Proceedings of the American Thoracic Society. 2008;5(2):136-143.
+5. Punjabi NM. The Epidemiology of Adult Obstructive Sleep Apnea. Proceedings of the American Thoracic Society. 2008;5(2):136-143.
 
-
-5. Redline S, Sanders MH, Lind BK, et al. Methods for obtaining and analyzing unattended polysomnography data for a multicenter study. Sleep Heart Health Research Group. Sleep. 1998;21(7):759-767.
+6. Redline S, Sanders MH, Lind BK, et al. Methods for obtaining and analyzing unattended polysomnography data for a multicenter study. Sleep Heart Health Research Group. Sleep. 1998;21(7):759-767.
