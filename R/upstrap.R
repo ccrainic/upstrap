@@ -32,8 +32,11 @@
 #' pval = smod["HTNDerv_s1", "Pr(>|z|)"]
 #' pval < 0.05
 #' }
-#' res = upstrap(data, statistic = statistic, R = 100, n.grid.multiplier = 5,
-#' range_multiplier = c(1, 3))
+#' res = upstrap(data,
+#' statistic = statistic,
+#' R = 50,
+#' n.grid.multiplier = 1,
+#' range_multiplier = c(1, 2))
 #' res = colMeans(res)
 upstrap = function(data, statistic, R = 10000, n.grid.multiplier = 21,
                    range_multiplier = c(1, 5), ...) {
@@ -59,7 +62,7 @@ upstrap = function(data, statistic, R = 10000, n.grid.multiplier = 21,
     warning("Range multiplier can only have 2 values, limiting to first 2")
     range_multiplier = range_multiplier[1:2]
   }
-
+  range_multiplier = sort(range_multiplier)
   # minimum and maximum multiplier for the sample size
   # here they are set to 1 (same sample size) and 5 (5 times the original sample size)
   min.multiplier = range_multiplier[1]
@@ -67,9 +70,12 @@ upstrap = function(data, statistic, R = 10000, n.grid.multiplier = 21,
 
   # set the grid of multipliers for the original sample size
   # here 1.2 stands for a sampel size that is 20% larger than the original sample size
-  multiplier.grid = seq(from = min.multiplier,
-                        to = max.multiplier,
-                        length = n.grid.multiplier)
+  multiplier.grid = seq(
+    from = min.multiplier,
+    to = max.multiplier,
+    length = max(n.grid.multiplier,
+                 diff(range_multiplier) + 1)
+  )
 
   # set the number of upstraps for each grid point;
   # this impacts running time and variability of the sample size calculation:
@@ -80,15 +86,19 @@ upstrap = function(data, statistic, R = 10000, n.grid.multiplier = 21,
 
   # build the matrix that will contain whether or not the null hypothesis that the
   # HTN is zero for a given multiplier (r) and upstrap sample (u)
+  J = length(multiplier.grid)
   check <- matrix(
     nrow = n.upstrap,
-    ncol = n.grid.multiplier)
+    ncol = J)
 
   colnames(check) = round(n.oss*multiplier.grid)
   # here j is the index of the multiplier of the original sample size, n.oss
-  for (j in 1:n.grid.multiplier)
+  for (j in 1:J)
   {#Each loop corresponds to an increase in the sample size
     N =  round(n.oss*multiplier.grid[j])
+    temp_index_mat <- matrix(sample.int(
+      n.oss, size = N * n.upstrap,
+      replace = TRUE), nrow = N, ncol = n.upstrap)
 
     # here u is the u-th upstrap for the r-th sample size multiplier
     # this simulation can/will be done more efficiently using matrices
@@ -99,9 +109,7 @@ upstrap = function(data, statistic, R = 10000, n.grid.multiplier = 21,
       # from 1, ..., n.oss (original sample size)
       # size equal to original sample size times the multiplier
       # sampling is with replacement
-      temp_index <- sample.int(
-        n.oss, size = N,
-        replace = TRUE)
+      temp_index = temp_index_mat[, u]
 
       # extract the data (covariates and outcome) using the upstrap sample index
       temp_data <- data[temp_index,]

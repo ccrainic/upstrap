@@ -48,7 +48,10 @@ smod = coef(summary(fit))
 pval = smod["HTNDerv_s1", "Pr(>|z|)"]
 pval < 0.05
 }
-res = upstrap(data, statistic = statistic, R = 100, n.grid.multiplier = 5,
-range_multiplier = c(1, 3))
+res = upstrap(data,
+statistic = statistic,
+R = 50,
+n.grid.multiplier = 1,
+range_multiplier = c(1, 2))
 res = colMeans(res)
 }
