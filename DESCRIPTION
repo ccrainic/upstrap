@@ -1,0 +1,22 @@
+Type: Package
+Package: upstrap
+Title: Upstrap: Oversampling Data for Sample Size Calculation
+Version: 0.1.0
+Authors@R: 
+    person(given = "John",
+           family = "Muschelli",
+           role = c("aut", "cre"),
+           email = "muschellij2@gmail.com",
+           comment = c(ORCID = "0000-0001-6469-1750"))
+Description: The upstrap resamples data with a sample size
+    larger than the original sample size.  This method allows users to see
+    behavior of estimators in increasing sample sizes, commonly done for
+    sample size calculation
+License: GPL-3
+Suggests: 
+    covr,
+    knitr,
+    rmarkdown
+Encoding: UTF-8
+LazyData: true
+VignetteBuilder: knitr
