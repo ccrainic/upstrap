@@ -17,7 +17,7 @@ Authors@R:
 Description: The upstrap resamples data with a sample size
     larger than the original sample size.  This method allows users to see
     behavior of estimators in increasing sample sizes, commonly done for
-    sample size calculation
+    sample size calculation.
 License: GPL-3
 Suggests: 
     covr,

@@ -1,9 +1,11 @@
 ---
 title: "The upstrap paper vignette"
 author: "Ciprian M. Crainiceanu and Adina Crainiceanu"
-output:
-  pdf_document: default
-  html_document: default
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{The upstrap}
+  %\VignetteEncoding{UTF-8}  
 ---
 
 ```{r setup, include=FALSE}
@@ -169,6 +171,7 @@ for (j in 1:n.grid.multiplier)
 
 Using the `upstrap` function, we can do this with a much shorter bit of code.  We first need to define the `statistic`, which a function to calculate the estimate of interest.  We will then set the number of upstrap resamples per grid to be much smaller and a much smaller search grid so that we can see how this performs in a short period of time.
 ```{r}
+library(upstrap)
 statistic <- function(data) {
   fit <- glm(MtS_SA ~ gender + age_s1 + bmi_s1 +
              HTNDerv_s1 + age_s1*HTNDerv_s1, family="binomial", data=data)
