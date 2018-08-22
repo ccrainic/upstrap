@@ -1,0 +1,8 @@
+structure(list(Crainiceanu262436 = structure(list(author = structure(list(
+    list(given = "Ciprian", family = "Crainiceanu", role = NULL, 
+        email = NULL, comment = NULL)), class = "person"), title = "The upstrap", 
+    year = "2018", doi = "10.1101/262436", publisher = "Cold Spring Harbor Laboratory", 
+    abstract = "Bootstrap is a landmark method for quantifying variability. It uses sampling with replacement with a sample size equal to that of the original data. We propose the upstrap, which samples with replacement either more or fewer samples than the original sample size. We illustrate the upstrap by solving a hard, but common, sample size calculation problem.", 
+    url = "https://www.biorxiv.org/content/early/2018/02/15/262436", 
+    eprint = "https://www.biorxiv.org/content/early/2018/02/15/262436.full.pdf", 
+    journal = "bioRxiv"), bibtype = "Article", key = "Crainiceanu262436")), class = "bibentry", strings = structure(character(0), .Names = character(0)))
