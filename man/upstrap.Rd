@@ -4,54 +4,66 @@
 \alias{upstrap}
 \title{Upstrap Resampling}
 \usage{
-upstrap(data, statistic, R = 10000, n.grid.multiplier = 21,
-  range_multiplier = c(1, 5), ...)
+upstrap(data, statistic, R, new_sample_size, ...)
 }
 \arguments{
-\item{data}{The data as a matrix or data frame.
+\item{data}{The data as a vector, matrix, or data frame.
 If it is a matrix or data frame then each row
 is considered as one multivariate observation.}
 
-\item{statistic}{A function which when applied to data returns a vector
-containing the statistic(s) of interest.}
+\item{statistic}{A function which when applied to data returns a value
+containing the statistic of interest.}
 
-\item{R}{The number of upstrap replicates for each point on the grid of
-range multipliers. Usually this will be a single positive integer.}
+\item{R}{The number of upstrap replicates for each value in
+new_sample_size vector. This should be a single positive integer.}
 
-\item{n.grid.multiplier}{number of grid points for the
-multiplier of the sample size.}
-
-\item{range_multiplier}{minimum and maximum multiplier for the sample size}
+\item{new_sample_size}{A vector of one or more new sample sizes,
+to be drawn from the orignal data set. The new sample sizes can be less than,
+equal to, or larger than the original data set.}
 
 \item{...}{additional arguments to pass to \code{statistic}.}
 }
 \value{
-An object
+matrix of R replicates of the statistic applied to
+the upstrap data. One column for each value in new_sample_size
 }
 \description{
-Upstrap Resampling
+This function samples with replacement either more or fewer
+samples than the original sample size
 }
 \examples{
+# read in the data
 fname = system.file("extdata", "shhs1.txt",
 package = "upstrap")
-# read in the data
 data = read.table(file = fname,
                  header = TRUE, na.strings="NA")
+# define the moderate to severe sleep apnea variable
+# from rdi4p - Respiratory Disturbance Index (RDI)
 data$MtS_SA = data$rdi4p>=15
+
+#define statistic function
 statistic = function(data) {
 fit<-glm(MtS_SA ~ gender + age_s1 + bmi_s1 +
-HTNDerv_s1 + age_s1*HTNDerv_s1, family="binomial", data=data)
-# could use broom
-#  tid = broom::tidy(fit)
-#  pval = tid$p.value[ tid$term == "HTNDerv_s1"]
+ HTNDerv_s1 + age_s1*HTNDerv_s1,
+ family="binomial",
+ data=data)
+
 smod = coef(summary(fit))
 pval = smod["HTNDerv_s1", "Pr(>|z|)"]
 pval < 0.05
 }
+
+# do upstrap for the same sample size, 1.5 the original size
+# and twice the original size
 res = upstrap(data,
-statistic = statistic,
-R = 50,
-n.grid.multiplier = 1,
-range_multiplier = c(1, 2))
-res = colMeans(res)
+  statistic = statistic,
+  R = 50,
+  new_sample_size = c(nrow(data), nrow(data)\\*1.5, nrow(data)\\*2))
+
+# display results
+power_res = colMeans(res)
+
 }
+\keyword{bootstrap,}
+\keyword{resampling}
+\keyword{upstrap,}
