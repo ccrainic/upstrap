@@ -12,7 +12,7 @@ vignette: >
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This is a vignette associated with the paper "The upstrap". Just like the bootstrap, the upstrap uses sampling with replacement of the original data to estimate the variability of various estimators (a.k.a. functions  of the data). In contrast to the bootstrap, the upstrap uses a number of resamples that can be smaller than, equal to, or larger than the original sample size of the data; the bootstrap uses only a number of samples equal to the sample size of the original data. This substantially extends the number and variety of scenarios where the variability of estimators can be evaluated using computational tools. For example, the upstrap could be used to assess the low and moderate sample size behavior of estimators via subsampling with replacement. Also, it can be used for sample size calculations that take into account the variability in effect estimation. To illustrate this latter point, this vignette provides an example on how to conduct the upstrap when we are interested in sample size calculations in a regression context. This document is designed to make the paper fully reproducible, while an `R` (R Development Core Team, 2008) package called `upstrap` will be deployed at the same GitHub address. The vignette will be improved, as software is updated and examples are added. The code is presented in extended format for pedagogical purposes, but the code can be substantially reduced using the (still in development) `upstrap` package in `R`. 
+This is a vignette associated with the paper "The upstrap". Just like the bootstrap, the upstrap uses sampling with replacement of the original data to estimate the variability of various estimators (a.k.a. functions  of the data). In contrast to the bootstrap, the upstrap uses a number of resamples that can be smaller than, equal to, or larger than the original sample size of the data; the bootstrap uses only a number of samples equal to the sample size of the original data. This substantially extends the number and variety of scenarios where the variability of estimators can be evaluated using computational tools. For example, the upstrap could be used to assess the low and moderate sample size behavior of estimators via subsampling with replacement. Also, it can be used for sample size calculations that take into account the variability in effect estimation. To illustrate this latter point, this vignette provides an example on how to conduct the upstrap when we are interested in sample size calculations in a regression context. This document is designed to make the paper fully reproducible, while an `R` (R Development Core Team, 2008) package called `upstrap` will be deployed at the same GitHub address. The vignette will be improved, as software is updated and examples are added. The code is presented in extended format for pedagogical purposes, but the code can be substantially reduced using the `upstrap` package in `R`. 
 
 
 To do this, we will use a subset of the Sleep Heart Health Study (SHHS), a multicenter study on sleep-disordered breathing, hypertension, and cardiovascular disease (Dean et al. 2016, Quan et al. 1997, Redline et al. 1998). The SHHS drew on the resources of existing, well-characterized, epidemiologic cohorts, and conducted further data collection, including measurements of sleep and breathing. The complete SHHS dataset is available online as part of the National Sleep Research Resource [https://sleepdata.org/datasets](https://sleepdata.org/datasets). For the purpose of this vignette we consider a small subset of the variables from the visit $1$ of the SHHS. We use `R` for computation and visualization. 
@@ -126,10 +126,14 @@ min.multiplier=1
 max.multiplier=5
 
 # set the grid of multipliers for the original sample size
-# here 1.2 stands for a sampel size that is 20% larger than the original sample size
+# here 1.2 stands for a sample size that is 20% larger than the original sample size
 multiplier.grid=seq(from=min.multiplier, to=max.multiplier,length=n.grid.multiplier)
 
+# vector of the new sample sizes
+new.sample.sizes = n.oss * multiplier.grid
+
 # set the number of upstraps for each grid point
+# higher the number, lower the variability, but higher the computation time
 n.upstrap=10000
 ```
 
@@ -169,8 +173,8 @@ for (j in 1:n.grid.multiplier)
 }
 ```
 
-Using the `upstrap` function, we can do this with a much shorter bit of code.  We first need to define the `statistic`, which a function to calculate the estimate of interest.  We will then set the number of upstrap resamples per grid to be much smaller and a much smaller search grid so that we can see how this performs in a short period of time.
-```{r}
+Using the `upstrap` function, we can do this with a shorter bit of code.  We first need to define the `statistic`, which is a function to calculate the estimate of interest. We then invoke the upstrap function, passing the dataset, the statistic function, the number of upstraps, and the vector of sample sizes. 
+```{r,eval=FALSE}
 library(upstrap)
 statistic <- function(data) {
   fit <- glm(MtS_SA ~ gender + age_s1 + bmi_s1 +
@@ -182,17 +186,16 @@ statistic <- function(data) {
   pval <- smod["HTNDerv_s1", "Pr(>|z|)"]
   pval < 0.05
 }
-res <- upstrap(dat, statistic = statistic, 
-               R = 100, n.grid.multiplier = 5,
-              range_multiplier = c(1, 3))
+check <- upstrap(dat, statistic = statistic, 
+               R = n.upstrap, 
+               new_sample_size = new.sample.sizes)
 ```
 
-Once the matrix `check` of dimensions `n.upstrap` by `n.grid.multiplier` is obtained we calculate its column means. This results in a vector of length `n.grid.multiplier`, which contains the proportion of times out of `n.upstrap` samples when the null hypothesis that the parameter of HTN is equal to zero is rejected. This is the power curve as a function of the multiplier of the original sample size.
+Once the matrix `check` of dimensions `n.upstrap` by `n.grid.multiplier` is obtained, we calculate its column means. This results in a vector of length `n.grid.multiplier`, which contains the proportion of times out of `n.upstrap` samples when the null hypothesis that the parameter of HTN is equal to zero is rejected. This is the power curve as a function of the multiplier of the original sample size.
 
 ```{r,eval=FALSE}
 # power check calculates the proportion of times the null hypothesis is rejected
 power_check<-colMeans(check)
-res <- colMeans(res)
 ```
 
 Below we plot the vector of multipliers of the original sample size, `n.grid.multiplier`, versus the power curve for rejecting the null hypothesis that the parameter of HTN is equal to zero, `power_check`. Horizontal lines are shown to indicate power equal to $0.8$ (orange) and $0.9$ (red). The value  $1$ on the $x$-axis corresponds to a sample size equal to the original sample size. The corresponding value on the $y$-axis on the curve is the boostrap p-value, or the frequency with which the null hypothesis that the HTN effect is zero is rejected using the bootstrap. The value $1.2$ on the $x$-axis corresponds to a sample size $20$\% larger than the original sample size. The corresponding value on the $y$-axis on the curve is the upstrap p-value, or the frequency with which the null hypothesis that the HTN effect is zero is rejected using the upstrap with a sample size multiplier equal to $1.2$.
