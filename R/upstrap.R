@@ -1,45 +1,59 @@
 #' Upstrap Resampling
 #'
-#' @param data The data as a matrix or data frame.
+#' @description This function samples with replacement either more or fewer
+#' samples than the original sample size
+#' @param data The data as a vector, matrix, or data frame.
 #' If it is a matrix or data frame then each row
 #' is considered as one multivariate observation.
-#' @param statistic A function which when applied to data returns a vector
-#' containing the statistic(s) of interest.
-#' @param R The number of upstrap replicates for each point on the grid of
-#' range multipliers. Usually this will be a single positive integer.
-#' @param n.grid.multiplier number of grid points for the
-#' multiplier of the sample size.
-#' @param range_multiplier minimum and maximum multiplier for the sample size
+#' @param statistic A function which when applied to data returns a value
+#' containing the statistic of interest.
+#' @param R The number of upstrap replicates for each value in
+#' new_sample_size vector. This should be a single positive integer.
+#' @param new_sample_size A vector of one or more new sample sizes,
+#' to be drawn from the orignal data set. The new sample sizes can be less than,
+#' equal to, or larger than the original data set.
 #' @param ... additional arguments to pass to \code{statistic}.
 #'
-#' @return An object
+#' @return matrix of R replicates of the statistic applied to
+#' the upstrap data. One column for each value in new_sample_size
+#'
+#' @keywords upstrap, bootstrap, resampling
+#'
 #' @export
 #'
 #' @examples
+#' # read in the data
 #' fname = system.file("extdata", "shhs1.txt",
 #' package = "upstrap")
-#' # read in the data
 #' data = read.table(file = fname,
 #'                  header = TRUE, na.strings="NA")
+#' # define the moderate to severe sleep apnea variable
+#' # from rdi4p - Respiratory Disturbance Index (RDI)
 #' data$MtS_SA = data$rdi4p>=15
+#'
+#' #define statistic function
 #' statistic = function(data) {
 #' fit<-glm(MtS_SA ~ gender + age_s1 + bmi_s1 +
-#' HTNDerv_s1 + age_s1*HTNDerv_s1, family="binomial", data=data)
-#' # could use broom
-#' #  tid = broom::tidy(fit)
-#' #  pval = tid$p.value[ tid$term == "HTNDerv_s1"]
+#'  HTNDerv_s1 + age_s1*HTNDerv_s1,
+#'  family="binomial",
+#'  data=data)
+#'
 #' smod = coef(summary(fit))
 #' pval = smod["HTNDerv_s1", "Pr(>|z|)"]
 #' pval < 0.05
 #' }
+#'
+#' # do upstrap for the same sample size, 1.5 the original size
+#' # and twice the original size
 #' res = upstrap(data,
-#' statistic = statistic,
-#' R = 50,
-#' n.grid.multiplier = 1,
-#' range_multiplier = c(1, 2))
-#' res = colMeans(res)
-upstrap = function(data, statistic, R = 10000, n.grid.multiplier = 21,
-                   range_multiplier = c(1, 5), ...) {
+#'   statistic = statistic,
+#'   R = 50,
+#'   new_sample_size = c(nrow(data), nrow(data)\*1.5, nrow(data)\*2))
+#'
+#' # display results
+#' power_res = colMeans(res)
+#'
+upstrap = function(data, statistic, R, new_sample_size, ...) {
 
   if (!is.function(statistic)) {
     stop("statistic needs to be a function")
@@ -48,76 +62,52 @@ upstrap = function(data, statistic, R = 10000, n.grid.multiplier = 21,
   # lapply(seq_len(R), function(x))
   # upstrap = statistic(data, ...)
 
-  # set the seed for reproducibility
-  # set.seed(08132018)
-
   # sample size of the original data
-  n.oss = nrow(data)
+  n_oss = nrow(data)
 
-  if (length(range_multiplier) == 1) {
-    range_multiplier = rep(range_multiplier, 2)
-  }
+  # number of new sample sizes
+  J = length(new_sample_size)
 
-  if (length(range_multiplier) != 2) {
-    warning("Range multiplier can only have 2 values, limiting to first 2")
-    range_multiplier = range_multiplier[1:2]
-  }
-  range_multiplier = sort(range_multiplier)
-  # minimum and maximum multiplier for the sample size
-  # here they are set to 1 (same sample size) and 5 (5 times the original sample size)
-  min.multiplier = range_multiplier[1]
-  max.multiplier = range_multiplier[2]
-
-  # set the grid of multipliers for the original sample size
-  # here 1.2 stands for a sampel size that is 20% larger than the original sample size
-  multiplier.grid = seq(
-    from = min.multiplier,
-    to = max.multiplier,
-    length = max(n.grid.multiplier,
-                 diff(range_multiplier) + 1)
-  )
-
-  # set the number of upstraps for each grid point;
-  # this impacts running time and variability of the sample size calculation:
-  # more data points, more running time, less variability
-  # 10000 can take about 7-8 hours on a typical laptop
-  # decrease this number for faster results
-  n.upstrap = R
-
-  # build the matrix that will contain whether or not the null hypothesis that the
-  # HTN is zero for a given multiplier (r) and upstrap sample (u)
-  J = length(multiplier.grid)
-  check <- matrix(
-    nrow = n.upstrap,
+  # build the result matrix of size RxJ that will contain
+  # the statistic value for each resampled dataset of given size(s)
+  result = matrix(
+    nrow = R,
     ncol = J)
 
-  colnames(check) = round(n.oss*multiplier.grid)
-  # here j is the index of the multiplier of the original sample size, n.oss
+  # for each sample size, generate R samples and compute statistics
+  # here j is the index of the new sample size
   for (j in 1:J)
-  {#Each loop corresponds to an increase in the sample size
-    N =  round(n.oss*multiplier.grid[j])
-    temp_index_mat <- matrix(sample.int(
-      n.oss, size = N * n.upstrap,
-      replace = TRUE), nrow = N, ncol = n.upstrap)
+  {
+    # get current sample size
+    N =  round(new_sample_size[j])
 
-    # here u is the u-th upstrap for the r-th sample size multiplier
-    # this simulation can/will be done more efficiently using matrices
-    for (u in 1:n.upstrap)
-    {# each loop corresponds to an upstrap with a given sample size
+    # construct matrix of re-sampled indices
+    # each column corresponds to one re-sampling of indices
+    # sampling is with replacement
+    temp_index_mat = matrix(sample.int(
+      n_oss, size = N*R,
+      replace = TRUE), nrow = N, ncol = R)
+
+    # for each upstrap re-sampling with a given sample size,
+    # compute the statistic
+    # here u is the u-th upstrap for the j-th new sample size
+    for (u in 1:R)
+    {
 
       # construct the upstrap sample index
-      # from 1, ..., n.oss (original sample size)
-      # size equal to original sample size times the multiplier
-      # sampling is with replacement
       temp_index = temp_index_mat[, u]
 
-      # extract the data (covariates and outcome) using the upstrap sample index
+      # extract the data (covariates and outcome)
+      # using the upstrap sample index
       temp_data <- data[temp_index,]
 
-
-      # obtain the p-value for HTN in the upstrapped data
-      check[u,j] <- statistic(temp_data, ...)
+      # compute statistic for new data
+      result[u,j] <- statistic(temp_data, ...)
     }
   }
-  return(check)
+
+  # return the matrix of statistics for resampled data,
+  # for each size specified in new_sample_size
+  return(result)
 }
+

@@ -9,10 +9,9 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # upstrap
-Materials accompanying the upstrap paper including vignette (.Rmd, .pdf, .html), Sleep Heart Health Study (SHHS) data, 
-and figure used for the vignette
+Materials accompanying the upstrap paper including vignette (.Rmd, .pdf, .html), Sleep Heart Health Study (SHHS) data, code,  and figure used for the vignette
 
-An R package called upstrap and additional code will be added as it becomes available
+An R package called upstrap is also available
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
@@ -22,7 +21,8 @@ knitr::opts_chunk$set(
 )
 ```
 # upstrap Package: 
-The goal of `upstrap` is to provide the upstrap resamples data with a sample size larger than the original sample size.  This method allows users to see behavior of estimators in increasing sample sizes, commonly done for sample size calculation.
+The goal of `upstrap` is to provide the upstrap functionality. The upstrap resamples data with a sample size smaller or larger than the original sample size.  This method allows users to see behavior of estimators in different sample sizes, commonly done for sample size calculation.
+
 
 ## Installation
 
@@ -30,7 +30,7 @@ You can install `upstrap` from GitHub with:
 
 ```{r gh-installation, eval = FALSE}
 # install.packages("remotes")
-remotes::install_github("muschellij2/upstrap")
+remotes::install_github("ccrainic/upstrap")
 ```
 
 
