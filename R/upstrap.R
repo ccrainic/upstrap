@@ -62,8 +62,13 @@ upstrap = function(data, statistic, R, new_sample_size, ...) {
   # lapply(seq_len(R), function(x))
   # upstrap = statistic(data, ...)
 
-  # sample size of the original data
-  n_oss = nrow(data)
+  # sample size of the original data 
+  # (number of rows for data frame or matrix, length for a vector)
+  if (is.vector(data)) {
+    n_oss = length(data)
+  } else {
+    n_oss = nrow(data)
+  }
 
   # number of new sample sizes
   J = length(new_sample_size)
@@ -97,10 +102,15 @@ upstrap = function(data, statistic, R, new_sample_size, ...) {
       # construct the upstrap sample index
       temp_index = temp_index_mat[, u]
 
-      # extract the data (covariates and outcome)
+      # extract the data using the upstrap sample index
       # using the upstrap sample index
-      temp_data <- data[temp_index,]
-
+      # (rows index for data frame or matrix, element for a vector)
+      if (is.vector(data)) {
+        temp_data <- data[temp_index]
+      } else {
+        temp_data <- data[temp_index, ]
+      }
+      
       # compute statistic for new data
       result[u,j] <- statistic(temp_data, ...)
     }
